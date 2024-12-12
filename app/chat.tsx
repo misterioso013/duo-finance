@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -39,6 +40,7 @@ export default function Chat() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [context, setContext] = useState('');
   const [transactionsContext, setTransactionsContext] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -224,6 +226,20 @@ export default function Chat() {
     }
   }
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadInitialData(),
+        loadTransactionsContext()
+      ]);
+    } catch (error) {
+      console.error('Erro ao atualizar:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -240,6 +256,14 @@ export default function Chat() {
         ref={scrollViewRef}
         style={styles.messagesContainer}
         onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1e40af']}
+            tintColor="#1e40af"
+          />
+        }
       >
         {messages.map(message => (
           <View

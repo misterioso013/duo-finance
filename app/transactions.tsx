@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,6 +34,7 @@ export default function Transactions() {
   const [dateFilter, setDateFilter] = useState<'day' | 'week' | 'month' | 'year'>('month');
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   function getDateRange(filter: 'day' | 'week' | 'month' | 'year') {
     const now = new Date();
@@ -125,6 +127,17 @@ export default function Transactions() {
     }).format(date);
   }
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadTransactions();
+    } catch (error) {
+      console.error('Erro ao atualizar:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -143,7 +156,17 @@ export default function Transactions() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1e40af']}
+            tintColor="#1e40af"
+          />
+        }
+      >
         <DateFilter
           currentFilter={dateFilter}
           onFilterChange={setDateFilter}

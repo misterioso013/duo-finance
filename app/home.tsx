@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -25,6 +25,7 @@ export default function Home() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [dateFilter, setDateFilter] = useState<'day' | 'week' | 'month' | 'year'>('month');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadTransactions();
@@ -124,6 +125,17 @@ export default function Home() {
     }).format(date);
   }
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadTransactions();
+    } catch (error) {
+      console.error('Erro ao atualizar:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -212,7 +224,16 @@ export default function Home() {
           </Link>
         </View>
         
-        <ScrollView>
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#1e40af']}
+              tintColor="#1e40af"
+            />
+          }
+        >
           {transactions.slice(0, 5).map((item) => (
             <TouchableOpacity
               key={item.id}
