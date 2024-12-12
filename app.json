@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "duo-finance",
     "name": "duo-finance",
     "slug": "duo-finance",
     "version": "1.0.0",
@@ -7,6 +8,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "packagerOpts": {
+      "sourceExts": ["cjs"]
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -22,7 +26,12 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset"
+    ]
   }
 }
